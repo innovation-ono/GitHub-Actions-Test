@@ -1,0 +1,39 @@
+name: Create back merge pull request
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check branch differences
+        run: |
+          git fetch origin main
+          git fetch origin develop
+          if [ "$(git diff origin/develop..origin/master | wc -l)" -eq 0 ]; then
+            echo 'masterとdevelopに差分がありません。何もしませんでした。'
+            echo 'HAS_BRANCH_DIFF=false' >> $GITHUB_ENV
+          else
+            echo 'HAS_BRANCH_DIFF=true' >> $GITHUB_ENV
+          fi
+      - name: Create pull request
+        # ブランチの差分がある場合に実行される
+        if: env.HAS_BRANCH_DIFF == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create \
+            --base develop \
+            --head master \
+            --title '<Back merge> Master > Develop' \
+            --body 'masterブランチが更新されました。このプルリクエストをマージし、developへ反映してください。' \
+            || echo 'すでにバックマージプルリクエストがあります。何もしませんでした。'
+
