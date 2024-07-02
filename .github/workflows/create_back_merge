@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Check branch differences
         run: |
-          git fetch origin master
+          git fetch origin main
           git fetch origin develop
           if [ "$(git diff origin/develop..origin/master | wc -l)" -eq 0 ]; then
             echo 'masterとdevelopに差分がありません。何もしませんでした。'
